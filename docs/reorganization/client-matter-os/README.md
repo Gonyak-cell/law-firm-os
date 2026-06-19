@@ -103,6 +103,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `58-g7-b-ops-commercial-closeout-report.md` | Records the G7-B deployment run, compliance report, admin audit viewer, operations dashboard, and Ops/Commercial closeout slice. |
 | `59-g7-c-hrx-people-guardrails-report.md` | Records the G7-C User/Employee separation, Employee schema, capacity/workload, HR document/evaluation, candidate separation, and HRX closeout slice. |
 | `60-g7-d-integrations-migration-foundation-report.md` | Records the G7-D connector registry, credential reference, sync job, sync cursor, and reconciliation foundation slice. |
+| `61-g7-e-migration-cutover-closeout-report.md` | Records the G7-E migration batch, import validation, accounting export, migration dashboard, and cutover closeout slice. |
 
 ## Execution Order
 
@@ -405,6 +406,12 @@ credential-reference secret-not-returned evidence, sync retry/idempotency,
 sync cursor resumability, reconciliation mismatch report and human review,
 RP22/RP25 descriptor boundaries, G7-C handoff, test coverage, and the open
 boundary for runtime readiness, production readiness, and go-live approval.
+
+The G7-E validator checks migration batch import audit evidence, duplicate
+Party detection, accounting export human-review-before-send controls, migration
+dashboard failed-row review, RP23/RP25 descriptor boundaries, G7-D handoff,
+test coverage, and the open boundary for cutover approval, production
+readiness, and go-live approval.
 
 ## Non-Goals
 
