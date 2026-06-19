@@ -99,6 +99,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `54-g6-f-portal-rfi-foundation-report.md` | Records the G6-F ExternalUser, PortalMatterProjection, ExternalACL, RFIRequest, and RFIResponse upload slice. |
 | `55-g6-g-portal-data-room-closeout-report.md` | Records the G6-G client approval, secure link, DataRoom, portal audit, and Portal/Data Room closeout slice. |
 | `56-g7-enterprise-hardening-entry-plan.md` | Opens the G7 Enterprise hardening, UAT, migration, HRX, QA/security, and production-readiness planning lane. |
+| `57-g7-a-admin-ops-foundation-report.md` | Records the G7-A tenant admin settings, plan/usage, observability, incident runbook, and release candidate foundation slice. |
 
 ## Execution Order
 
@@ -168,6 +169,7 @@ npm run client-matter:g6e:validate
 npm run client-matter:g6f:validate
 npm run client-matter:g6g:validate
 npm run client-matter:g7:plan:validate
+npm run client-matter:g7a:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -373,6 +375,11 @@ Integrations, Migration, Enterprise SaaS, Platform, Marketplace, Commercial,
 and HRX descriptor evidence, G6-G handoff, stacked PR branch markers, and the
 open boundary for enterprise trust, UAT completion, production readiness, and
 go-live approval.
+
+The G7-A validator checks tenant admin settings, plan/usage audit, observability
+baseline, incident runbook, release candidate approval, RP21/RP29 descriptor
+boundaries, test coverage, and the open boundary for enterprise trust,
+production readiness, and go-live approval.
 
 ## Non-Goals
 
