@@ -12,6 +12,8 @@ What can be approved today is narrower: the current Client-Matter repo baseline,
 
 This packet does not itself approve go-live, approve owner deferrals, or modify `docs/launch/launch-decision-register.md`.
 
+Follow-up receipt: `docs/launch/client-matter-baseline-acceptance-receipt-2026-06-19.md` records PR #52 merge as Managing Partner/System Admin baseline acceptance only. Production go-live remains NO-GO.
+
 ## Evidence Snapshot
 
 | Evidence line | Current state | Decision effect |
@@ -137,6 +139,7 @@ node scripts/validate-go-live-readiness.mjs --fixtures <fixture-dir-with-readine
 ## Source Files
 
 - `docs/launch/client-matter-go-live-evidence-classification-2026-06-19.json`
+- `docs/launch/client-matter-baseline-acceptance-receipt-2026-06-19.md`
 - `docs/launch/launch-goal-completion-audit.md`
 - `docs/launch/owner-action-deferral-request.json`
 - `docs/launch/launch-owner-approval-request-packet.json`

@@ -10,7 +10,8 @@
     "docs/launch/launch-owner-response-intake.json",
     "docs/launch/launch-decision-register.md",
     "docs/launch/go-no-go-decision.md",
-    "contracts/go-live-gate-contract.json"
+    "contracts/go-live-gate-contract.json",
+    "docs/launch/client-matter-baseline-acceptance-receipt-2026-06-19.json"
   ],
   "boundary": {
     "packet_records_owner_review_scope": true,
@@ -70,6 +71,14 @@
       "real_owner_receipt_count": 0,
       "target_count_by_pending_requests": 117,
       "copy_allowed_count": 0
+    },
+    "baseline_acceptance_receipt": {
+      "status": "recorded_after_pr_52_merge",
+      "receipt_ref": "docs/launch/client-matter-baseline-acceptance-receipt-2026-06-19.json",
+      "decision_id": "CM-BASELINE-ACCEPT-2026-06-19",
+      "scope": "baseline_acceptance_only",
+      "go_live_effect": "NO-GO remains unchanged",
+      "decision_register_copy_allowed": false
     },
     "packet_branch_verification": {
       "branch": "codex/lawos-go-live-approval-packet",
