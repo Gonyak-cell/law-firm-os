@@ -144,7 +144,7 @@
     "validate": "node scripts/validate-product-contract.mjs",
     "contracts:validate": "node scripts/validate-product-contract.mjs",
     "client-matter:g0:validate": "node scripts/validate-client-matter-os-reorganization.mjs",
-    "client-matter:cmp-extension:validate": "node scripts/validate-client-matter-os-cmp-extension.mjs",
+    "client-matter:cmp-v1:validate": "node scripts/validate-client-matter-os-cmp-v1.mjs",
     "client-matter:g1:plan:validate": "node scripts/validate-client-matter-os-g1-plan.mjs",
     "client-matter:g1a:validate": "node scripts/validate-client-matter-os-g1-a.mjs",
     "client-matter:g1b:validate": "node scripts/validate-client-matter-os-g1-b.mjs",

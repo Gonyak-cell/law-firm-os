@@ -2,19 +2,20 @@
 
 Status: Proposed
 Date: 2026-06-19
-Scope: Client-Matter-People OS absorption into Law Firm OS
+Scope: Client-Matter-People OS implementation in Law Firm OS
 
 ## Goal
 
-Absorb the 316-TUW CMP package safely without overwriting the existing
-198-TUW Client-Matter OS plan or weakening runtime-readiness claims. Each
-meaningful absorption unit should have its own GitHub-visible commit and, for
-runtime work, its own focused branch or stacked draft PR.
+Implement the 316-TUW CMP package safely while preserving the older 198-TUW
+`LFOS-*` catalog as legacy reference evidence. The CMP package is the active
+CMP v1.0 baseline, not a small extension. Each meaningful implementation unit
+should have its own GitHub-visible commit and, for runtime work, its own focused
+branch or stacked draft PR.
 
 ## Stability Principles
 
-1. Preserve the existing `LFOS-*` catalog until the CMP crosswalk validator
-   confirms all 316 rows are mapped.
+1. Preserve the existing `LFOS-*` catalog as legacy reference anchors while the
+   CMP v1.0 validator confirms all 316 rows are mapped.
 2. Keep planning evidence, descriptor evidence, synthetic evidence, runtime
    evidence, and production launch evidence separate.
 3. Require G1 trust foundation evidence before any downstream gate claims R4.
@@ -32,7 +33,7 @@ source gate order where Matter appears before CRM/Intake conversion.
 
 | Batch | CMP gates | TUWs | Purpose | GitHub history unit |
 | --- | --- | ---: | --- | --- |
-| `B00` | source intake | 0 | Register source package, hashes, and no-runtime boundary. | Current branch commit `Register CMP extension source package`. |
+| `B00` | source intake | 0 | Register source package, hashes, and no-runtime boundary. | Current branch commits for CMP source registration and CMP v1 baseline correction. |
 | `B01` | `CMP-G0` | 21 | Freeze glossary, ownership, ADRs, module boundaries, audit taxonomy, API standards, and PR convention. | `codex/lawos-cmp-g0-governance-freeze` or a focused commit stack under this branch. |
 | `B02` | `CMP-G1` | 24 | Implement or prove tenant, actor, permission, policy, audit, legal hold, break-glass, safe errors, and negative tests. | `codex/lawos-cmp-g1-trust-foundation-runtime`. |
 | `B03a` | `CMP-G2` | 19 | Runtime Party, ClientGroup, Relationship, ContactPoint, BillingProfile, duplicate, merge, split, and Party UI. | `codex/lawos-cmp-g2-party-client-master`. |
@@ -90,20 +91,22 @@ Use GitHub history as the inspection surface:
 
 ## Validator Plan
 
-The CMP extension validator should check:
+The CMP v1 validator should check:
 
 1. Source intake exists and records 316 TUWs.
 2. Crosswalk has exactly 316 data rows.
 3. Every `CMP-*` TUW ID is unique.
 4. Gate counts match the source package.
 5. Every row has an implementation batch, existing LFOS anchor, GitHub history
-   unit, runtime claim rule, and `planned_extension` status.
-6. Existing `client-matter:g0:validate` still passes, proving the 198-TUW
-   baseline was not silently replaced.
+   unit, runtime claim rule, and a valid `same/expanded/new/reordered/supersedes`
+   status.
+6. Existing `client-matter:g0:validate` still passes, proving the 198-TUW legacy
+   reference remains inspectable while CMP v1 becomes the active implementation
+   baseline.
 
 ## Runtime Claim Boundary
 
-This plan is not a product-readiness claim. It is an absorption plan. Any future
+This plan is not a product-readiness claim. It is an implementation plan. Any future
 report that says runtime-ready, pilot-ready, enterprise-ready, production-ready,
 R4, R5, or R6 must name the evidence file and the validator output proving that
 claim.

@@ -4,7 +4,7 @@ import path from "node:path";
 import process from "node:process";
 
 const ROOT = path.resolve("docs/reorganization/client-matter-os");
-const CMP_ROOT = path.join(ROOT, "cmp-extension");
+const CMP_ROOT = path.join(ROOT, "cmp-v1");
 
 const EXPECTED_GATE_COUNTS = Object.freeze({
   "CMP-G0": 21,
@@ -25,27 +25,20 @@ const EXPECTED_GATE_COUNTS = Object.freeze({
 const REQUIRED_FILES = Object.freeze([
   "README.md",
   "00-cmp-source-intake.md",
-  "01-cmp-tuw-crosswalk.csv",
+  "cmp-v1-tuw-crosswalk.csv",
   "02-cmp-stable-implementation-plan.md"
 ]);
 
 const REQUIRED_COLUMNS = Object.freeze([
-  "cmp_tuw_id",
-  "cmp_gate",
-  "cmp_gate_name",
-  "cmp_workstream",
-  "cmp_task",
-  "risk",
-  "priority",
-  "runtime_readiness_target",
-  "integration_order",
-  "implementation_batch",
-  "repo_absorption_lane",
-  "existing_lfos_anchor",
-  "github_history_unit",
-  "runtime_claim_rule",
-  "status"
+  "CMP TUW",
+  "기존 LFOS TUW",
+  "status",
+  "target package",
+  "validator impact",
+  "runtime claim allowed"
 ]);
+
+const VALID_STATUSES = new Set(["same", "expanded", "new", "reordered", "supersedes"]);
 
 function parseCsv(text) {
   const rows = [];
@@ -111,14 +104,14 @@ for (const file of REQUIRED_FILES) {
   try {
     await readDoc(CMP_ROOT, file);
   } catch {
-    addFinding(findings, "MISSING_FILE", `Missing CMP extension artifact: ${file}`);
+    addFinding(findings, "MISSING_FILE", `Missing CMP v1 artifact: ${file}`);
   }
 }
 
 const sourceRegister = await readDoc(ROOT, "00-source-package-register.md");
 const sourceIntake = await readDoc(CMP_ROOT, "00-cmp-source-intake.md");
 const implementationPlan = await readDoc(CMP_ROOT, "02-cmp-stable-implementation-plan.md");
-const csv = await readDoc(CMP_ROOT, "01-cmp-tuw-crosswalk.csv");
+const csv = await readDoc(CMP_ROOT, "cmp-v1-tuw-crosswalk.csv");
 
 if (!sourceRegister.includes("/Users/jws/Documents/Codex/Client-Matter-People/")) {
   addFinding(findings, "SOURCE_REGISTER", "Source package register must mention the Client-Matter-People source path.");
@@ -146,13 +139,13 @@ for (const column of REQUIRED_COLUMNS) {
 
 const rows = toObjects(csvRows);
 if (rows.length !== 316) {
-  addFinding(findings, "CMP_TUW_COUNT", "CMP crosswalk must preserve exactly 316 data rows.", {
+  addFinding(findings, "CMP_TUW_COUNT", "CMP v1 crosswalk must preserve exactly 316 data rows.", {
     expected: 316,
     actual: rows.length
   });
 }
 
-const ids = rows.map((row) => row.cmp_tuw_id);
+const ids = rows.map((row) => row["CMP TUW"]);
 const uniqueIds = new Set(ids);
 if (uniqueIds.size !== ids.length) {
   addFinding(findings, "DUPLICATE_TUW", "CMP crosswalk contains duplicate TUW IDs.", {
@@ -169,20 +162,21 @@ if (ids.at(-1) !== "CMP-G12-W12-T028") {
 
 const actualGateCounts = Object.fromEntries(Object.keys(EXPECTED_GATE_COUNTS).map((gate) => [gate, 0]));
 for (const row of rows) {
-  actualGateCounts[row.cmp_gate] = (actualGateCounts[row.cmp_gate] ?? 0) + 1;
+  const gate = row["CMP TUW"]?.match(/^(CMP-G\d+)-/)?.[1] ?? "UNKNOWN";
+  actualGateCounts[gate] = (actualGateCounts[gate] ?? 0) + 1;
   for (const column of REQUIRED_COLUMNS) {
     if (!row[column]) {
-      addFinding(findings, "EMPTY_CELL", `CMP crosswalk row ${row.cmp_tuw_id} missing ${column}.`);
+      addFinding(findings, "EMPTY_CELL", `CMP v1 crosswalk row ${row["CMP TUW"]} missing ${column}.`);
     }
   }
-  if (row.status !== "planned_extension") {
-    addFinding(findings, "STATUS_BOUNDARY", `CMP row ${row.cmp_tuw_id} must remain planned_extension until implementation evidence exists.`);
+  if (!VALID_STATUSES.has(row.status)) {
+    addFinding(findings, "STATUS_BOUNDARY", `CMP v1 row ${row["CMP TUW"]} has invalid status ${row.status}.`);
   }
-  if (!row.runtime_claim_rule.includes("planning-only")) {
-    addFinding(findings, "CLAIM_BOUNDARY", `CMP row ${row.cmp_tuw_id} must preserve the planning-only runtime claim rule.`);
+  if (!row["validator impact"].includes("requires") && !row["validator impact"].includes("validates")) {
+    addFinding(findings, "VALIDATOR_IMPACT", `CMP v1 row ${row["CMP TUW"]} must describe validator impact.`);
   }
-  if (!row.github_history_unit.startsWith("branch codex/lawos-cmp-")) {
-    addFinding(findings, "GITHUB_HISTORY_UNIT", `CMP row ${row.cmp_tuw_id} must name a codex/lawos-cmp branch unit.`);
+  if (!row["runtime claim allowed"].includes("only after") && !row["runtime claim allowed"].startsWith("no ")) {
+    addFinding(findings, "CLAIM_BOUNDARY", `CMP v1 row ${row["CMP TUW"]} must preserve runtime-claim permission.`);
   }
 }
 
@@ -230,14 +224,14 @@ if (!implementationPlan.includes("must not be described as runtime-write-ready")
 }
 
 if (findings.length > 0) {
-  console.error("Client-Matter OS CMP extension validation failed.");
+  console.error("Client-Matter OS CMP v1 validation failed.");
   for (const finding of findings) {
     console.error(JSON.stringify(finding));
   }
   process.exit(1);
 }
 
-console.log("Client-Matter OS CMP extension validation passed.");
+console.log("Client-Matter OS CMP v1 validation passed.");
 console.log(`cmp_tuw_rows: ${rows.length}/316`);
 console.log(
   `cmp_gate_counts: ${Object.entries(actualGateCounts)
@@ -245,4 +239,4 @@ console.log(
     .join(" ")}`
 );
 console.log("runtime_claim_boundary: planning-only until row evidence proves R4 requirements");
-console.log("github_history_units: present for all CMP rows");
+console.log("cmp_v1_statuses: same/expanded/new/reordered/supersedes only");
