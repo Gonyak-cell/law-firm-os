@@ -6,6 +6,14 @@ export const CLIENT_PORTAL_G6F_TUW_COVERAGE = Object.freeze([
   "LFOS-G6-W11-T005",
 ]);
 
+export const CLIENT_PORTAL_G6G_TUW_COVERAGE = Object.freeze([
+  "LFOS-G6-W11-T006",
+  "LFOS-G6-W11-T007",
+  "LFOS-G6-W11-T008",
+  "LFOS-G6-W11-T009",
+  "LFOS-G6-W11-T010",
+]);
+
 function freezeRecord(record) {
   return Object.freeze(record);
 }
@@ -260,6 +268,148 @@ export function createClientPortalG6FPortalRfiFoundationCloseoutDescriptor(reque
       runtime_readiness_claim: "open",
       client_portal_runtime_opened: false,
       rfi_upload_persisted: false,
+      internal_data_exposed: false,
+      draft_pr_self_merged: false,
+    }),
+  });
+}
+
+export function createClientPortalG6ClientApprovalDescriptor(request = {}) {
+  const approval = request.approval ?? {};
+  const runtimeDispatch = request.dispatched_runtime === true || approval.dispatched_runtime === true;
+  const auditBound = Boolean(approval.approval_id && approval.approver_external_user_id && approval.audit_receipt_id);
+  const blockedClaims = [];
+
+  if (missingFields(["tenant_id", "matter_id", "external_user_id", "approval"], request).length > 0) {
+    blockedClaims.push("client_approval_required_context_missing");
+  }
+  if (!auditBound) blockedClaims.push("client_approval_audit_required");
+  if (approval.tenant_id && approval.tenant_id !== request.tenant_id) blockedClaims.push("client_approval_cross_tenant_blocked");
+  if (approval.matter_id && approval.matter_id !== request.matter_id) blockedClaims.push("client_approval_matter_trace_mismatch");
+  if (runtimeDispatch) blockedClaims.push("client_approval_runtime_dispatch_blocked");
+
+  return freezeRecord({
+    ...noRuntimeBoundary("LFOS-G6-W11-T006"),
+    descriptor_type: "client_portal_g6_client_approval_descriptor",
+    tenant_id: request.tenant_id ?? approval.tenant_id ?? null,
+    matter_id: request.matter_id ?? approval.matter_id ?? null,
+    external_user_id: request.external_user_id ?? approval.approver_external_user_id ?? null,
+    approval_id: approval.approval_id ?? null,
+    outcome: outcomeFor(blockedClaims),
+    blocked_claims: freezeArray(blockedClaims),
+    client_approval_receipt: freezeRecord({
+      approval_audit_tested: auditBound,
+      approval_persisted: false,
+      runtime_dispatched: runtimeDispatch,
+    }),
+  });
+}
+
+export function createClientPortalG6SecureLinkViewerDescriptor(request = {}) {
+  const secureLink = request.secure_link ?? {};
+  const runtimeDispatch = request.dispatched_runtime === true || secureLink.dispatched_runtime === true;
+  const hasExpiry = Boolean(secureLink.expires_at);
+  const watermarkEnabled = secureLink.watermark_enabled === true;
+  const mfaRequired = secureLink.mfa_required === true;
+  const blockedClaims = [];
+
+  if (missingFields(["tenant_id", "matter_id", "external_user_id", "secure_link"], request).length > 0) {
+    blockedClaims.push("secure_link_required_context_missing");
+  }
+  if (!secureLink.secure_link_id) blockedClaims.push("secure_link_id_required");
+  if (!hasExpiry) blockedClaims.push("secure_link_expiry_required");
+  if (!watermarkEnabled) blockedClaims.push("secure_link_watermark_required");
+  if (!mfaRequired) blockedClaims.push("secure_link_mfa_required");
+  if (runtimeDispatch) blockedClaims.push("secure_link_runtime_dispatch_blocked");
+
+  return freezeRecord({
+    ...noRuntimeBoundary("LFOS-G6-W11-T007"),
+    descriptor_type: "client_portal_g6_secure_link_viewer_descriptor",
+    tenant_id: request.tenant_id ?? null,
+    matter_id: request.matter_id ?? null,
+    external_user_id: request.external_user_id ?? null,
+    secure_link_id: secureLink.secure_link_id ?? null,
+    outcome: outcomeFor(blockedClaims),
+    blocked_claims: freezeArray(blockedClaims),
+    secure_link_receipt: freezeRecord({
+      expiry_tested: hasExpiry,
+      watermark_tested: watermarkEnabled,
+      mfa_tested: mfaRequired,
+      secure_link_persisted: false,
+      runtime_dispatched: runtimeDispatch,
+    }),
+  });
+}
+
+export function createClientPortalG6PortalAuditDescriptor(request = {}) {
+  const auditEvents = freezeArray(request.audit_events);
+  const runtimeDispatch = request.dispatched_runtime === true;
+  const hasViewEvent = auditEvents.some((event) => event?.event_type === "external_view" && event?.audit_receipt_id);
+  const hasUploadEvent = auditEvents.some((event) => event?.event_type === "external_upload" && event?.audit_receipt_id);
+  const internalPayloadExposed = auditEvents.some((event) => event?.internal_payload_included === true);
+  const blockedClaims = [];
+
+  if (missingFields(["tenant_id", "matter_id", "external_user_id", "audit_events"], request).length > 0) {
+    blockedClaims.push("portal_audit_required_context_missing");
+  }
+  if (!hasViewEvent || !hasUploadEvent) blockedClaims.push("portal_audit_external_view_upload_events_required");
+  if (auditEvents.some((event) => event?.external_user_id && event.external_user_id !== request.external_user_id)) {
+    blockedClaims.push("portal_audit_external_user_trace_mismatch");
+  }
+  if (internalPayloadExposed) blockedClaims.push("portal_audit_internal_payload_blocked");
+  if (runtimeDispatch) blockedClaims.push("portal_audit_runtime_dispatch_blocked");
+
+  return freezeRecord({
+    ...noRuntimeBoundary("LFOS-G6-W11-T009"),
+    descriptor_type: "client_portal_g6_portal_audit_descriptor",
+    tenant_id: request.tenant_id ?? null,
+    matter_id: request.matter_id ?? null,
+    external_user_id: request.external_user_id ?? null,
+    audit_event_count: auditEvents.length,
+    outcome: outcomeFor(blockedClaims),
+    blocked_claims: freezeArray(blockedClaims),
+    portal_audit_receipt: freezeRecord({
+      external_view_upload_events_tested: hasViewEvent && hasUploadEvent,
+      internal_payload_blocked: internalPayloadExposed,
+      audit_event_persisted: false,
+      runtime_dispatched: runtimeDispatch,
+    }),
+  });
+}
+
+export function createClientPortalG6GPortalDataRoomCloseoutDescriptor(request = {}) {
+  const descriptors = freezeArray(request.descriptors);
+  const descriptorTuws = new Set(descriptors.map((descriptor) => descriptor?.tuw_id));
+  const blockedClaims = [];
+
+  for (const tuwId of CLIENT_PORTAL_G6G_TUW_COVERAGE) {
+    if (!descriptorTuws.has(tuwId)) blockedClaims.push("g6_portal_data_room_closeout_evidence_required");
+  }
+  if (request.portal_rfi_foundation_closed !== true) blockedClaims.push("g6_portal_data_room_requires_rfi_foundation_handoff");
+  if (descriptors.some((descriptor) => descriptor?.outcome !== "review_required")) {
+    blockedClaims.push("g6_portal_data_room_blocked_descriptor_present");
+  }
+
+  const outcome = outcomeFor(blockedClaims);
+
+  return freezeRecord({
+    ...noRuntimeBoundary("LFOS-G6-W11-T006..LFOS-G6-W11-T010"),
+    descriptor_type: "client_portal_g6g_portal_data_room_closeout_descriptor",
+    tenant_id: request.tenant_id ?? null,
+    slice_id: "G6-G",
+    tuw_coverage: CLIENT_PORTAL_G6G_TUW_COVERAGE,
+    descriptor_count: descriptors.length,
+    outcome,
+    blocked_claims: freezeArray(blockedClaims),
+    approval_audit_tested: descriptorTuws.has("LFOS-G6-W11-T006"),
+    secure_link_expiry_watermark_mfa_tested: descriptorTuws.has("LFOS-G6-W11-T007"),
+    data_room_acl_tested: descriptorTuws.has("LFOS-G6-W11-T008"),
+    external_view_upload_audit_tested: descriptorTuws.has("LFOS-G6-W11-T009"),
+    no_internal_data_exposure_tested: descriptorTuws.has("LFOS-G6-W11-T010"),
+    closeout_receipt: freezeRecord({
+      runtime_readiness_claim: "open",
+      portal_runtime_opened: false,
+      data_room_runtime_opened: false,
       internal_data_exposed: false,
       draft_pr_self_merged: false,
     }),
