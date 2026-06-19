@@ -4,6 +4,7 @@ import { dirname } from "node:path";
 
 const DEFERRAL_SOURCE_AUDIT_PATH = "docs/launch/launch-deferral-source-extraction-audit.json";
 const CRITICAL_HARDENING_CONTRACT_PATH = "contracts/critical-rp-saas-hardening-contract.json";
+const HARDENING_ADJUDICATION_PATH = "docs/launch/g1-hardening-adjudication-2026-06-19.json";
 const DEFERRAL_REVIEW_REGISTER_PATH = "docs/launch/deferral-review-register.md";
 const HARDENING_COVERAGE_MATRIX_PATH = "docs/launch/hardening-coverage-matrix.md";
 const G1_INDEX_PATH = "docs/launch/g1-completion-evidence-index.md";
@@ -15,23 +16,34 @@ function readJson(path) {
   return JSON.parse(readFileSync(path, "utf8"));
 }
 
+function readOptionalJson(path) {
+  try {
+    return readJson(path);
+  } catch {
+    return null;
+  }
+}
+
 function markdownCell(value) {
   return String(value ?? "").replaceAll("|", "\\|").replace(/\s+/g, " ").trim();
 }
 
-function buildHardeningCells(contract) {
+function buildHardeningCells(contract, adjudication) {
+  const adjudicatedByCellId = new Map((adjudication?.cells ?? []).map((cell) => [cell.cell_id, cell]));
   const cells = [];
   for (const rp_id of contract.critical_rp_ids ?? []) {
     for (const control_id of contract.universal_saas_controls ?? []) {
+      const cell_id = `${rp_id}:${control_id}`;
+      const adjudicated = adjudicatedByCellId.get(cell_id);
       cells.push({
-        cell_id: `${rp_id}:${control_id}`,
+        cell_id,
         rp_id,
         control_id,
-        status: "pending_evidence_extraction",
-        evidence_ref: "",
-        evidence_command: "",
-        unmet_disposition: "",
-        approval_record: ""
+        status: adjudicated?.satisfies_g1_e03 ? "evidence_satisfied" : adjudicated ? "pending_gap_disposition" : "pending_evidence_extraction",
+        evidence_ref: adjudicated?.satisfies_g1_e03 ? HARDENING_ADJUDICATION_PATH : "",
+        evidence_command: adjudicated ? "npm run launch:g1:hardening:adjudicate" : "",
+        unmet_disposition: adjudicated && !adjudicated.satisfies_g1_e03 ? adjudicated.adjudication_basis : "",
+        approval_record: adjudicated ? "docs/launch/g1-owner-decisions-2026-06-19.json" : ""
       });
     }
   }
@@ -174,7 +186,8 @@ function renderMarkdown(report) {
 
 const deferralAudit = readJson(DEFERRAL_SOURCE_AUDIT_PATH);
 const hardeningContract = readJson(CRITICAL_HARDENING_CONTRACT_PATH);
-const hardeningCells = buildHardeningCells(hardeningContract);
+const hardeningAdjudication = readOptionalJson(HARDENING_ADJUDICATION_PATH);
+const hardeningCells = buildHardeningCells(hardeningContract, hardeningAdjudication);
 const uniqueMatDecIds = deferralAudit.mat_dec?.unique_decision_ids ?? [];
 const matDecRows = parseMatDecStatusRows(MAT_DEC_REGISTER_PATH)
   .filter((row, index, rows) => rows.findIndex((candidate) => candidate.decision_id === row.decision_id) === index)
@@ -236,17 +249,18 @@ const g1E02 = {
 const g1E03 = {
   evidence_id: "G1-E03",
   required_state: "all_missing_cells_adjudicated_or_zero",
-  current_status: "not_satisfied",
-  closeable_now: false,
+  current_status: hardeningCells.every((cell) => cell.status === "evidence_satisfied") ? "closeable_pending_manual_evidence_intake" : "not_satisfied",
+  closeable_now: hardeningCells.every((cell) => cell.status === "evidence_satisfied"),
   critical_rp_count: hardeningContract.critical_rp_ids?.length ?? 0,
   universal_control_count: hardeningContract.universal_saas_controls?.length ?? 0,
   required_cell_count: hardeningCells.length,
-  evidence_satisfied_cell_count: hardeningCells.filter((cell) => cell.status === "satisfied").length,
-  pending_cell_count: hardeningCells.filter((cell) => cell.status === "pending_evidence_extraction").length,
+  evidence_satisfied_cell_count: hardeningCells.filter((cell) => cell.status === "evidence_satisfied").length,
+  pending_cell_count: hardeningCells.filter((cell) => cell.status !== "evidence_satisfied").length,
   cells: hardeningCells,
   source_refs: [
     CRITICAL_HARDENING_CONTRACT_PATH,
-    HARDENING_COVERAGE_MATRIX_PATH
+    HARDENING_COVERAGE_MATRIX_PATH,
+    HARDENING_ADJUDICATION_PATH
   ]
 };
 
@@ -256,6 +270,7 @@ const report = {
   source_refs: [
     DEFERRAL_SOURCE_AUDIT_PATH,
     CRITICAL_HARDENING_CONTRACT_PATH,
+    HARDENING_ADJUDICATION_PATH,
     DEFERRAL_REVIEW_REGISTER_PATH,
     HARDENING_COVERAGE_MATRIX_PATH,
     MAT_DEC_REGISTER_PATH,

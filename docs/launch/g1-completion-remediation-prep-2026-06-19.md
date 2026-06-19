@@ -7,7 +7,7 @@ Generated on: 2026-06-19
 - This prep package does not close G1.
 - It does not mark `G1-E02` or `G1-E03` as evidence-satisfied.
 - It separates already-normalized deferral sources from owner-linkage and hardening-cell work still required.
-- G1 can close only after the remaining owner linkage and 272 hardening cells have real evidence or valid dispositions.
+- G1 can close only after the remaining owner linkage and 16 hardening cells have real evidence or valid dispositions.
 
 ## Summary
 
@@ -21,7 +21,7 @@ Generated on: 2026-06-19
 - mat_dec_non_blocking_default_count: 1
 - mat_dec_remaining_owner_linkage_count: 0
 - hardening_required_cell_count: 272
-- hardening_pending_cell_count: 272
+- hardening_pending_cell_count: 16
 
 ## G1-E02 Deferred Item Rejudgment Prep
 
@@ -57,37 +57,37 @@ MAT-DEC owner linkage is present or non-blocking. Move G1-E02 into manual eviden
 | Critical RP IDs | 16 |
 | Universal SaaS controls | 17 |
 | Required cells | 272 |
-| Cells with evidence | 0 |
-| Pending cells | 272 |
+| Cells with evidence | 256 |
+| Pending cells | 16 |
 
 First 24 hardening cells to populate:
 
 | Cell | RP | Control | Status |
 | --- | --- | --- | --- |
-| RP00:tenant_isolation | RP00 | tenant_isolation | pending_evidence_extraction |
-| RP00:object_level_authorization | RP00 | object_level_authorization | pending_evidence_extraction |
-| RP00:deny_over_allow | RP00 | deny_over_allow | pending_evidence_extraction |
-| RP00:matter_first_traceability | RP00 | matter_first_traceability | pending_evidence_extraction |
-| RP00:append_only_audit_or_evidence | RP00 | append_only_audit_or_evidence | pending_evidence_extraction |
-| RP00:privacy_minimization | RP00 | privacy_minimization | pending_evidence_extraction |
-| RP00:secure_secret_handling | RP00 | secure_secret_handling | pending_evidence_extraction |
-| RP00:idempotency_and_replay_protection | RP00 | idempotency_and_replay_protection | pending_evidence_extraction |
-| RP00:data_retention_and_legal_hold | RP00 | data_retention_and_legal_hold | pending_evidence_extraction |
-| RP00:observability_trace_log_metric | RP00 | observability_trace_log_metric | pending_evidence_extraction |
-| RP00:synthetic_fixture_only | RP00 | synthetic_fixture_only | pending_evidence_extraction |
-| RP00:contract_tests | RP00 | contract_tests | pending_evidence_extraction |
-| RP00:threat_model | RP00 | threat_model | pending_evidence_extraction |
-| RP00:migration_or_release_rollback | RP00 | migration_or_release_rollback | pending_evidence_extraction |
-| RP00:hermes_gate | RP00 | hermes_gate | pending_evidence_extraction |
-| RP00:claude_cross_validation | RP00 | claude_cross_validation | pending_evidence_extraction |
-| RP00:human_approval | RP00 | human_approval | pending_evidence_extraction |
-| RP01:tenant_isolation | RP01 | tenant_isolation | pending_evidence_extraction |
-| RP01:object_level_authorization | RP01 | object_level_authorization | pending_evidence_extraction |
-| RP01:deny_over_allow | RP01 | deny_over_allow | pending_evidence_extraction |
-| RP01:matter_first_traceability | RP01 | matter_first_traceability | pending_evidence_extraction |
-| RP01:append_only_audit_or_evidence | RP01 | append_only_audit_or_evidence | pending_evidence_extraction |
-| RP01:privacy_minimization | RP01 | privacy_minimization | pending_evidence_extraction |
-| RP01:secure_secret_handling | RP01 | secure_secret_handling | pending_evidence_extraction |
+| RP00:tenant_isolation | RP00 | tenant_isolation | evidence_satisfied |
+| RP00:object_level_authorization | RP00 | object_level_authorization | evidence_satisfied |
+| RP00:deny_over_allow | RP00 | deny_over_allow | evidence_satisfied |
+| RP00:matter_first_traceability | RP00 | matter_first_traceability | evidence_satisfied |
+| RP00:append_only_audit_or_evidence | RP00 | append_only_audit_or_evidence | evidence_satisfied |
+| RP00:privacy_minimization | RP00 | privacy_minimization | evidence_satisfied |
+| RP00:secure_secret_handling | RP00 | secure_secret_handling | evidence_satisfied |
+| RP00:idempotency_and_replay_protection | RP00 | idempotency_and_replay_protection | evidence_satisfied |
+| RP00:data_retention_and_legal_hold | RP00 | data_retention_and_legal_hold | evidence_satisfied |
+| RP00:observability_trace_log_metric | RP00 | observability_trace_log_metric | evidence_satisfied |
+| RP00:synthetic_fixture_only | RP00 | synthetic_fixture_only | evidence_satisfied |
+| RP00:contract_tests | RP00 | contract_tests | evidence_satisfied |
+| RP00:threat_model | RP00 | threat_model | evidence_satisfied |
+| RP00:migration_or_release_rollback | RP00 | migration_or_release_rollback | evidence_satisfied |
+| RP00:hermes_gate | RP00 | hermes_gate | evidence_satisfied |
+| RP00:claude_cross_validation | RP00 | claude_cross_validation | evidence_satisfied |
+| RP00:human_approval | RP00 | human_approval | evidence_satisfied |
+| RP01:tenant_isolation | RP01 | tenant_isolation | evidence_satisfied |
+| RP01:object_level_authorization | RP01 | object_level_authorization | evidence_satisfied |
+| RP01:deny_over_allow | RP01 | deny_over_allow | evidence_satisfied |
+| RP01:matter_first_traceability | RP01 | matter_first_traceability | evidence_satisfied |
+| RP01:append_only_audit_or_evidence | RP01 | append_only_audit_or_evidence | evidence_satisfied |
+| RP01:privacy_minimization | RP01 | privacy_minimization | evidence_satisfied |
+| RP01:secure_secret_handling | RP01 | secure_secret_handling | pending_gap_disposition |
 
 Full 272-cell scaffold is in the JSON artifact.
 
