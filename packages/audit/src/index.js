@@ -24,3 +24,5 @@ export * from "./evidence-workflow-fixture-catalog.js";
 export * from "./review-closeout-continuation-catalog.js";
 export * from "./review-sensitive-boundary-catalog.js";
 export * from "./review-terminal-closeout-catalog.js";
+export * from "./hrx-events.js";
+export * from "./hrx-event-store.js";
