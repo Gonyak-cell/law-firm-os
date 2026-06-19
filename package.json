@@ -158,6 +158,7 @@
     "client-matter:g4b:validate": "node scripts/validate-client-matter-os-g4-b.mjs",
     "client-matter:g4c:validate": "node scripts/validate-client-matter-os-g4-c.mjs",
     "client-matter:g4d:validate": "node scripts/validate-client-matter-os-g4-d.mjs",
+    "client-matter:g4e:validate": "node scripts/validate-client-matter-os-g4-e.mjs",
     "ui:reference:generate": "node scripts/generate-amplitude-ui-reference.mjs",
     "ui:tokens:extract": "node scripts/extract-amplitude-visual-tokens.mjs",
     "ui:states:registry": "node scripts/generate-matter-amplitude-screenshot-state-registry.mjs",
