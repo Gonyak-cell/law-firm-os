@@ -6,6 +6,12 @@ export const PAYMENTS_G5D_TUW_COVERAGE = Object.freeze([
   "LFOS-G5-W08-T005",
 ]);
 
+export const PAYMENTS_G5E_TUW_COVERAGE = Object.freeze([
+  "LFOS-G5-W08-T006",
+  "LFOS-G5-W08-T007",
+  "LFOS-G5-W08-T008",
+]);
+
 function freezeRecord(record) {
   return Object.freeze(record);
 }
@@ -21,6 +27,13 @@ function missingFields(fields, input) {
 function asNumber(value) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function amountTotal(items, field = "amount") {
+  return items.reduce((total, item) => {
+    const amount = asNumber(item?.[field]);
+    return amount === null ? total : total + amount;
+  }, 0);
 }
 
 function noWriteBoundary(tuwId) {
@@ -41,8 +54,11 @@ function noWriteBoundary(tuwId) {
     dispatches_payment_matching_runtime: false,
     dispatches_ar_runtime: false,
     dispatches_ar_aging_runtime: false,
+    dispatches_accounting_export_runtime: false,
+    dispatches_tax_export_runtime: false,
     recognizes_cash: false,
     creates_ledger_entry: false,
+    posts_journal_entry: false,
     mutates_invoice: false,
     g5_runtime_readiness_claim: "open",
     payments_runtime_readiness_claim: "open",
@@ -88,6 +104,135 @@ export function createPaymentsG5PaymentSchemaDescriptor(request = {}) {
     payment_schema_receipt: freezeRecord({
       imported_unmatched_state_tested: ["imported", "unmatched"].includes(payment.status),
       payment_persisted: false,
+      audit_event_written: false,
+    }),
+  });
+}
+
+export function createPaymentsG5JournalEntryDescriptor(request = {}) {
+  const journalEntry = request.journal_entry ?? {};
+  const lines = freezeArray(journalEntry.lines);
+  const sourceEvents = freezeArray(request.source_events);
+  const debitTotal = amountTotal(lines.filter((line) => line?.side === "debit"));
+  const creditTotal = amountTotal(lines.filter((line) => line?.side === "credit"));
+  const postedToGl = request.posted_to_gl === true || journalEntry.posted_to_gl === true;
+  const blockedClaims = [];
+
+  if (missingFields(["tenant_id", "matter_id", "journal_entry", "source_events"], request).length > 0) {
+    blockedClaims.push("journal_entry_required_context_missing");
+  }
+  if (!journalEntry.journal_entry_id) blockedClaims.push("journal_entry_id_required");
+  if (sourceEvents.length === 0) blockedClaims.push("journal_entry_source_event_required");
+  if (lines.length < 2 || Math.abs(debitTotal - creditTotal) > 0.0001) {
+    blockedClaims.push("journal_entry_balanced_entry_required");
+  }
+  if (postedToGl) blockedClaims.push("journal_entry_posting_blocked");
+  if (journalEntry.matter_id && journalEntry.matter_id !== request.matter_id) {
+    blockedClaims.push("journal_entry_matter_trace_mismatch");
+  }
+  if (journalEntry.tenant_id && journalEntry.tenant_id !== request.tenant_id) {
+    blockedClaims.push("journal_entry_cross_tenant_blocked");
+  }
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G5-W08-T006"),
+    descriptor_type: "payments_g5_journal_entry_descriptor",
+    tenant_id: request.tenant_id ?? journalEntry.tenant_id ?? null,
+    matter_id: request.matter_id ?? journalEntry.matter_id ?? null,
+    journal_entry_id: journalEntry.journal_entry_id ?? null,
+    source_event_count: sourceEvents.length,
+    debit_total: debitTotal,
+    credit_total: creditTotal,
+    outcome: outcomeFor(blockedClaims),
+    blocked_claims: freezeArray(blockedClaims),
+    journal_entry_receipt: freezeRecord({
+      balanced_entry_tested: lines.length >= 2 && Math.abs(debitTotal - creditTotal) <= 0.0001,
+      journal_entry_persisted: false,
+      posted_to_gl: postedToGl,
+      audit_event_written: false,
+    }),
+  });
+}
+
+export function createPaymentsG5AccountingExportDescriptor(request = {}) {
+  const exportBatch = request.export_batch ?? {};
+  const journalEntries = freezeArray(request.journal_entries);
+  const auditEvidence = request.audit_evidence ?? {};
+  const dispatchedRuntime = request.dispatched_runtime === true || exportBatch.dispatched_runtime === true;
+  const blockedClaims = [];
+
+  if (missingFields(["tenant_id", "export_batch", "journal_entries", "audit_evidence"], request).length > 0) {
+    blockedClaims.push("accounting_export_required_context_missing");
+  }
+  if (!exportBatch.export_batch_id) blockedClaims.push("accounting_export_batch_id_required");
+  if (!exportBatch.export_format) blockedClaims.push("accounting_export_format_required");
+  if (journalEntries.length === 0) blockedClaims.push("accounting_export_journal_entries_required");
+  if (!auditEvidence.export_audit_ref) blockedClaims.push("accounting_export_audit_evidence_required");
+  if (
+    journalEntries.some((entry) => {
+      const lines = freezeArray(entry?.lines);
+      const debitTotal = amountTotal(lines.filter((line) => line?.side === "debit"));
+      const creditTotal = amountTotal(lines.filter((line) => line?.side === "credit"));
+      return lines.length < 2 || Math.abs(debitTotal - creditTotal) > 0.0001;
+    })
+  ) {
+    blockedClaims.push("accounting_export_balanced_entry_required");
+  }
+  if (dispatchedRuntime) blockedClaims.push("accounting_export_runtime_dispatch_blocked");
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G5-W08-T007"),
+    descriptor_type: "payments_g5_accounting_export_descriptor",
+    tenant_id: request.tenant_id ?? exportBatch.tenant_id ?? null,
+    export_batch_id: exportBatch.export_batch_id ?? null,
+    export_format: exportBatch.export_format ?? null,
+    journal_entry_count: journalEntries.length,
+    outcome: outcomeFor(blockedClaims),
+    blocked_claims: freezeArray(blockedClaims),
+    accounting_export_receipt: freezeRecord({
+      export_audit_tested: Boolean(auditEvidence.export_audit_ref),
+      export_file_written: false,
+      dispatched_runtime: dispatchedRuntime,
+      audit_event_written: false,
+    }),
+  });
+}
+
+export function createPaymentsG5VatTaxExportDescriptor(request = {}) {
+  const taxExport = request.tax_export ?? {};
+  const period = request.period ?? {};
+  const invoiceTaxSummaries = freezeArray(request.invoice_tax_summaries);
+  const expectedTaxTotal = asNumber(taxExport.tax_total);
+  const summaryTaxTotal = amountTotal(invoiceTaxSummaries, "tax_amount");
+  const exportedWithoutLock = request.exported_without_lock === true || taxExport.exported_without_lock === true;
+  const blockedClaims = [];
+
+  if (missingFields(["tenant_id", "tax_export", "period", "invoice_tax_summaries"], request).length > 0) {
+    blockedClaims.push("vat_tax_export_required_context_missing");
+  }
+  if (!taxExport.tax_export_id) blockedClaims.push("vat_tax_export_id_required");
+  if (!period.period_id) blockedClaims.push("vat_tax_export_period_required");
+  if (period.locked !== true || exportedWithoutLock) blockedClaims.push("vat_tax_export_period_lock_required");
+  if (invoiceTaxSummaries.length === 0) blockedClaims.push("vat_tax_export_invoice_tax_summary_required");
+  if (expectedTaxTotal === null || Math.abs(expectedTaxTotal - summaryTaxTotal) > 0.0001) {
+    blockedClaims.push("vat_tax_export_amount_reconciliation_required");
+  }
+
+  return freezeRecord({
+    ...noWriteBoundary("LFOS-G5-W08-T008"),
+    descriptor_type: "payments_g5_vat_tax_export_descriptor",
+    tenant_id: request.tenant_id ?? taxExport.tenant_id ?? null,
+    tax_export_id: taxExport.tax_export_id ?? null,
+    period_id: period.period_id ?? null,
+    invoice_tax_summary_count: invoiceTaxSummaries.length,
+    tax_total: expectedTaxTotal,
+    summary_tax_total: summaryTaxTotal,
+    outcome: outcomeFor(blockedClaims),
+    blocked_claims: freezeArray(blockedClaims),
+    vat_tax_export_receipt: freezeRecord({
+      period_lock_tested: period.locked === true,
+      tax_export_persisted: false,
+      exported_without_lock: exportedWithoutLock,
       audit_event_written: false,
     }),
   });
