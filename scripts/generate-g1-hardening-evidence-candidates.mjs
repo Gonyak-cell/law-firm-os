@@ -13,7 +13,7 @@ const CONTROL_RULES = {
   matter_first_traceability: ["matter-first", "Matter", "matter_id", "traceability"],
   append_only_audit_or_evidence: ["append-only", "audit", "evidence", "hash chain", "tamper"],
   privacy_minimization: ["privacy", "PII", "minimization", "personal information"],
-  secure_secret_handling: ["secret", "credential", "token", "key", "configuration"],
+  secure_secret_handling: ["secret", "credential", "access token", "api key", "signed url"],
   idempotency_and_replay_protection: ["idempotency", "replay", "duplicate", "retry"],
   data_retention_and_legal_hold: ["retention", "legal hold", "WORM", "purge"],
   observability_trace_log_metric: ["observability", "trace", "metric", "log", "telemetry"],
@@ -56,7 +56,36 @@ function evidenceFieldsForOverlay(overlay) {
   return fields;
 }
 
-function matchControlEvidence(overlay, controlId) {
+function snippetForTerm(text, term) {
+  const lines = text.split(/\r?\n/);
+  const normalizedTerm = normalize(term);
+  const lineIndex = lines.findIndex((line) => normalize(line).includes(normalizedTerm));
+  if (lineIndex === -1) return null;
+  return {
+    line: lineIndex + 1,
+    snippet: lines[lineIndex].trim().slice(0, 240)
+  };
+}
+
+function artifactContentMatches(mandatoryArtifacts, terms) {
+  const matches = [];
+  for (const artifact of mandatoryArtifacts.filter((candidate) => candidate.exists)) {
+    const text = readFileSync(artifact.path, "utf8");
+    const matchedTerms = terms.filter((term) => normalize(text).includes(normalize(term)));
+    if (matchedTerms.length === 0) continue;
+    const firstSnippet = matchedTerms.map((term) => snippetForTerm(text, term)).find(Boolean);
+    matches.push({
+      field: "mandatory_artifact_content",
+      artifact_path: artifact.path,
+      value: firstSnippet?.snippet ?? "",
+      line: firstSnippet?.line ?? null,
+      matched_terms: [...new Set(matchedTerms)]
+    });
+  }
+  return matches;
+}
+
+function matchControlEvidence(overlay, controlId, mandatoryArtifacts) {
   const terms = CONTROL_RULES[controlId] ?? [controlId.replaceAll("_", " ")];
   const fields = evidenceFieldsForOverlay(overlay);
   const matches = [];
@@ -71,6 +100,7 @@ function matchControlEvidence(overlay, controlId) {
       });
     }
   }
+  matches.push(...artifactContentMatches(mandatoryArtifacts, terms));
   return matches;
 }
 
@@ -84,7 +114,7 @@ function buildRows(contract) {
       exists: existsSync(artifactPath)
     }));
     for (const controlId of asArray(contract.universal_saas_controls)) {
-      const controlEvidence = overlay ? matchControlEvidence(overlay, controlId) : [];
+      const controlEvidence = overlay ? matchControlEvidence(overlay, controlId, mandatoryArtifacts) : [];
       const candidateStatus = controlEvidence.length > 0 ? "candidate_evidence_present_pending_adjudication" : "candidate_gap_pending_evidence";
       rows.push({
         cell_id: `${rpId}:${controlId}`,
