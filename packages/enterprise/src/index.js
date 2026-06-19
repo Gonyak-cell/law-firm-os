@@ -3,3 +3,4 @@ export * from "./sso.js";
 export * from "./scim.js";
 export * from "./service.js";
 export * from "./validators.js";
+export * from "./client-matter-g7.js";
