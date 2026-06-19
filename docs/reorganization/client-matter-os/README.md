@@ -70,6 +70,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `25-g2-b-relationship-billing-profile-report.md` | Records the G2-B ClientGroup, Relationship, ContactPoint, and BillingProfile reference slice. |
 | `26-g2-c-duplicate-search-merge-report.md` | Records the G2-C duplicate candidate, related-party search, and merge/split descriptor slice. |
 | `27-g2-d-ui-closeout-report.md` | Records the G2-D Party search/profile UI-state and G2 closeout evidence descriptor slice. |
+| `28-g3-crm-intake-entry-plan.md` | Opens the G3 CRM/Intake execution lane with TUW coverage, entry evidence, Opportunity-to-Matter shortcut controls, and PR slices. |
 
 ## Execution Order
 
@@ -110,6 +111,7 @@ npm run client-matter:g2a:validate
 npm run client-matter:g2b:validate
 npm run client-matter:g2c:validate
 npm run client-matter:g2d:validate
+npm run client-matter:g3:plan:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -156,6 +158,10 @@ The G2-D validator checks denied and review-required Party search/profile UI
 states, hidden-field and unauthorized-count protection, CRM/Matter/Billing
 reference evidence, command evidence, draft PR state, human review disposition,
 contract risks, test coverage, and the open runtime-write-readiness boundary.
+
+The G3 plan validator checks all 26 G3 TUWs, CRM and Intake descriptor evidence,
+R-001/R-002/R-003 controls, Opportunity-to-Matter shortcut prohibition,
+required validation scripts, and the open runtime-readiness boundary.
 
 ## Non-Goals
 
