@@ -67,6 +67,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `22-g1-d-audit-closeout-report.md` | Records the G1-D hash-chain verification, tenant export, admin simulator, and closeout evidence slice. |
 | `23-g2-party-master-entry-plan.md` | Opens the G2 Party & Relationship Master planning lane with TUW coverage, entry evidence, runtime-evidence requirements, and slice boundaries. |
 | `24-g2-a-party-schema-report.md` | Records the G2-A Party, Person, Organization, PartyAlias, and PartyIdentifier schema slice. |
+| `25-g2-b-relationship-billing-profile-report.md` | Records the G2-B ClientGroup, Relationship, ContactPoint, and BillingProfile reference slice. |
 
 ## Execution Order
 
@@ -104,6 +105,7 @@ npm run client-matter:g1c:validate
 npm run client-matter:g1d:validate
 npm run client-matter:g2:plan:validate
 npm run client-matter:g2a:validate
+npm run client-matter:g2b:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -135,6 +137,11 @@ and the open runtime-write-readiness boundary.
 The G2-A validator checks Party, Person, Organization, PartyAlias, and
 PartyIdentifier schema evidence, tenant-scoped identity keys, duplicate
 alias/identifier review claims, contract scope, test coverage, and the open
+runtime-write-readiness boundary.
+
+The G2-B validator checks ClientGroup membership, Relationship Party endpoints,
+ContactPoint primary/verified fields, BillingProfile legal-client versus
+billing-client references, contract risks, test coverage, and the open
 runtime-write-readiness boundary.
 
 ## Non-Goals

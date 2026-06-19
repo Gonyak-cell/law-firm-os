@@ -131,6 +131,7 @@ import {
   createMasterDataApiReferenceFixture,
   createMasterDataBillingProfile,
   createMasterDataClientGroup,
+  createMasterDataContactPoint,
   createMasterDataParty,
   createMasterDataPartyAlias,
   createMasterDataPartyIdentifier,
@@ -470,6 +471,155 @@ test("G2-A party schema binds party person organization alias and identifier ten
       }),
     /PartyIdentifier type must be one of/,
   );
+});
+
+test("G2-B relationship and billing profile schema binds group contact and client references", () => {
+  const tenant_id = "tenant_g2_relationship";
+  const owner_user_id = "user_g2_owner";
+  const legalClient = createMasterDataParty({
+    party_id: "party_g2_legal_client",
+    tenant_id,
+    party_type: "organization",
+    display_name: "G2 Legal Client",
+    status: "active",
+    owner_user_id,
+    canonical_entity_id: "entity_g2_legal_client",
+  });
+  const billingClient = createMasterDataParty({
+    party_id: "party_g2_billing_client",
+    tenant_id,
+    party_type: "organization",
+    display_name: "G2 Billing Client",
+    status: "active",
+    owner_user_id,
+    canonical_entity_id: "entity_g2_billing_client",
+  });
+  const contactParty = createMasterDataParty({
+    party_id: "party_g2_contact",
+    tenant_id,
+    party_type: "person",
+    display_name: "G2 Billing Contact",
+    status: "active",
+    owner_user_id,
+    canonical_entity_id: "entity_g2_contact",
+  });
+  const clientGroup = createMasterDataClientGroup({
+    client_group_id: "client_group_g2_family",
+    tenant_id,
+    display_name: "G2 Client Family",
+    status: "active",
+    owner_user_id,
+    member_party_ids: [legalClient.party_id, billingClient.party_id, contactParty.party_id],
+    primary_party_id: legalClient.party_id,
+    member_entity_ids: [legalClient.canonical_entity_id, billingClient.canonical_entity_id, contactParty.canonical_entity_id],
+  });
+  const relationship = createMasterDataRelationship({
+    relationship_id: "relationship_g2_billing_contact",
+    tenant_id,
+    from_entity_id: contactParty.canonical_entity_id,
+    to_entity_id: legalClient.canonical_entity_id,
+    from_party_id: contactParty.party_id,
+    to_party_id: legalClient.party_id,
+    relationship_type: "billing_contact",
+    direction: "person_to_organization",
+    status: "active",
+    owner_user_id,
+  });
+  const contactPoint = createMasterDataContactPoint({
+    contact_point_id: "contact_g2_billing_email",
+    tenant_id,
+    owner_entity_id: contactParty.canonical_entity_id,
+    owner_party_id: contactParty.party_id,
+    contact_type: "billing_email",
+    value: "billing.g2@example.invalid",
+    is_primary: true,
+    verified: true,
+    status: "active",
+    owner_user_id,
+  });
+  const billingProfile = createMasterDataBillingProfile({
+    billing_profile_id: "billing_profile_g2",
+    tenant_id,
+    billing_entity_id: billingClient.canonical_entity_id,
+    legal_client_party_id: legalClient.party_id,
+    billing_client_party_id: billingClient.party_id,
+    billing_contact_point_id: contactPoint.contact_point_id,
+    display_name: "G2 Billing Profile",
+    status: "active",
+    owner_user_id,
+    client_group_id: clientGroup.client_group_id,
+  });
+
+  assert.deepEqual(clientGroup.member_party_ids, [legalClient.party_id, billingClient.party_id, contactParty.party_id]);
+  assert.equal(clientGroup.primary_party_id, legalClient.party_id);
+  assert.equal(relationship.from_party_id, contactParty.party_id);
+  assert.equal(relationship.to_party_id, legalClient.party_id);
+  assert.equal(contactPoint.is_primary, true);
+  assert.equal(contactPoint.verified, true);
+  assert.equal(contactPoint.verification_status, "verified");
+  assert.equal(billingProfile.legal_client_party_id, legalClient.party_id);
+  assert.equal(billingProfile.billing_client_party_id, billingClient.party_id);
+  assert.equal(billingProfile.billing_contact_point_id, contactPoint.contact_point_id);
+
+  assert.equal(validateMasterDataRecord("ClientGroup", clientGroup, { member_tenant_ids: [tenant_id, tenant_id, tenant_id] }).valid, true);
+  assert.equal(
+    validateMasterDataRecord("Relationship", relationship, {
+      party_types_by_id: {
+        [contactParty.party_id]: contactParty.party_type,
+        [legalClient.party_id]: legalClient.party_type,
+      },
+    }).valid,
+    true,
+  );
+  assert.equal(validateMasterDataRecord("ContactPoint", contactPoint).valid, true);
+  assert.equal(
+    validateMasterDataRecord("BillingProfile", billingProfile, {
+      require_legal_and_billing_client_refs: true,
+      require_distinct_billing_client: true,
+    }).valid,
+    true,
+  );
+
+  const missingPrimary = validateMasterDataRecord("ClientGroup", {
+    ...clientGroup,
+    client_group_id: "client_group_g2_bad_primary",
+    member_party_ids: [billingClient.party_id],
+    primary_party_id: legalClient.party_id,
+  });
+  assert.equal(missingPrimary.valid, false);
+  assert.ok(missingPrimary.blocked_claims.includes("client_group_primary_party_missing"));
+
+  const wrongDirection = validateMasterDataRecord("Relationship", relationship, {
+    party_types_by_id: {
+      [contactParty.party_id]: "organization",
+      [legalClient.party_id]: "person",
+    },
+  });
+  assert.equal(wrongDirection.valid, false);
+  assert.ok(wrongDirection.blocked_claims.includes("relationship_direction_error"));
+
+  const samePartyRelationship = validateMasterDataRecord("Relationship", {
+    ...relationship,
+    relationship_id: "relationship_g2_same_party",
+    to_party_id: contactParty.party_id,
+  });
+  assert.equal(samePartyRelationship.valid, false);
+  assert.ok(samePartyRelationship.blocked_claims.includes("relationship_party_endpoint_error"));
+
+  const sameBillingClient = validateMasterDataRecord(
+    "BillingProfile",
+    {
+      ...billingProfile,
+      billing_profile_id: "billing_profile_g2_same_client",
+      billing_client_party_id: legalClient.party_id,
+    },
+    {
+      require_legal_and_billing_client_refs: true,
+      require_distinct_billing_client: true,
+    },
+  );
+  assert.equal(sameBillingClient.valid, false);
+  assert.ok(sameBillingClient.blocked_claims.includes("billing_profile_client_reference_error"));
 });
 
 test("master data factories create synthetic no-write records", () => {
