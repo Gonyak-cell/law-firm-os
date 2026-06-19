@@ -84,6 +84,7 @@ ownership, boundary, and runtime-readiness evidence.
 | `39-g4-e-dms-security-email-search-report.md` | Records the G4-E DMS checkout lock, privilege label, redaction, secure link, email filing, Outlook placeholder, and search ACL slice. |
 | `40-g4-f-dms-ui-audit-closeout-report.md` | Records the G4-F DMS workspace UI, view/download/share audit coverage, and G4 DMS closeout slice. |
 | `41-g5-billing-finance-entry-plan.md` | Opens the G5 Billing/Finance execution lane with TUW coverage, G4 handoff evidence, revenue runtime requirements, and PR slices. |
+| `42-g5-a-time-expense-foundation-report.md` | Records the G5-A TimeEntry, RateCard, FeeArrangement, time-entry workflow, Expense, and Disbursement foundation slice. |
 
 ## Execution Order
 
@@ -138,6 +139,7 @@ npm run client-matter:g4d:validate
 npm run client-matter:g4e:validate
 npm run client-matter:g4f:validate
 npm run client-matter:g5:plan:validate
+npm run client-matter:g5a:validate
 ```
 
 This validator checks that the G0-G7 roadmap, all 198 TUWs, 15 source risks,
@@ -258,6 +260,12 @@ The G5 plan validator checks all 30 G5 TUWs, Time/Expense, Billing,
 Payments/AR, and Settlement descriptor evidence, R-001/R-006/R-013/R-014/R-015
 controls, G4 Matter/DMS handoff requirements before revenue runtime, required
 validation scripts, and the open runtime-readiness boundary.
+
+The G5-A validator checks TimeEntry Matter-required field coverage, RateCard
+effective dates, FeeArrangement BillingProfile and rate override mapping,
+submit/approve/lock workflow evidence, Expense evidence-document requirements,
+Disbursement billable-flag evidence, test coverage, RP11 descriptor-only
+contract boundary, and the open runtime-readiness boundary.
 
 ## Non-Goals
 
